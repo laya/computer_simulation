@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GCompris>
+  <Board
+        name="computer_simulation"
+        type="python:computer_simulation"
+        section="/experimental"
+        icon="computer_simulation.svg"
+        difficulty="1"
+        author="your name here"
+        boarddir=""
+        >
+        <title>set a title for computer_simulation</title>
+        <description>set a description for computer_simulation</description>
+        <prerequisite>set a prerequisite for computer_simulation</prerequisite>
+        <goal>set a goal for computer_simulation</goal>
+        <manual>set a manual for computer_simulation</manual>
+        <credit>set a credit for computer_simulation</credit>
+  </Board>
+  <Data directory=""/>
+</GCompris>
