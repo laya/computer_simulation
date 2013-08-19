@@ -121,7 +121,7 @@ class Gcompris_computer_simulation:
     self.rootitem = \
       goocanvas.Group(parent = self.gcomprisBoard.canvas.get_root_item())
 
-    self.create_components()
+    self.create_components(self.gcomprisBoard.level)
 
     # Display the tools
     x = 12
@@ -149,6 +149,11 @@ class Gcompris_computer_simulation:
       # Add the item in self.tools for later use
       self.tools[i].append(item)
 
+
+  def get_current_tools(self):
+    return (self.tools[self.current_tool])
+
+
   def tool_item_event(self, item, target, event, tool):
     if event.type == gtk.gdk.BUTTON_PRESS:
       if event.button == 1:
@@ -168,5 +173,112 @@ class Gcompris_computer_simulation:
     item.set_properties(pixbuf = gcompris.utils.load_pixmap(self.tools[self.current_tool][2]))
     gcompris.set_cursor(self.tools[self.current_tool][3]);
 
-  def create_components(self):
+  def create_components(self, level):
+
+    if (level == 1):
+      component_set = (CPU, Keyboard, Monitor, UPS)
+    elif (level == 2):
+      component_set = (motherboard, ram, harddisk, processor)
+
+    Selector(self, component_set)
+
+
+class CPU:
+  image = "computer/cpu.png"
+  icon = "computer/cpu.png"
+  
+  def __init__(self, computer, x, y):
+    pass 
+
+
+class Keyboard:
+  image = "computer/keyboard.png"
+  icon = "computer/keyboard.png"
+
+  def __init__(self, computer, x, y):
     pass
+
+class Monitor:
+  image = "computer/monitor.png"
+  icon = "computer/monitor.png"
+
+  def __init__(self, computer, x, y):
+    pass
+
+
+class UPS:
+  image = "computer/ups.png"
+  icon = "computer/ups.png"
+
+  def __init__(self, computer, x, y):
+    pass
+
+
+class Selector:
+  def __init__(self, computer, components_class):
+    self.computer = computer
+    self.rootitem = computer.rootitem
+
+    goocanvas.Svg(parent = self.rootitem,
+                  svg_handle = gcompris.skin.svg_get(),
+                  svg_id = "#SELECTOR"
+                  )
+
+    self.x = 15
+    self.y = 60
+
+    index_y = 10
+    gap = 20
+    width = 70
+    height = 70
+    self.init_coord = {}
+    self.offset_x = self.offset_y = 0
+
+    for component_class in components_class:
+      pixmap = gcompris.utils.load_pixmap(component_class.icon)
+      item = goocanvas.Image(
+                parent = self.rootitem,
+                pixbuf = pixmap,
+                width = width,
+                height = height,
+                x = self.x,
+                y = self.y + index_y
+                )
+
+      self.init_coord[component_class] = (self.x, self.y + index_y)
+      index_y += height + gap
+
+      item.connect("button_press_event", self.component_click, component_class)
+      item.connect("button_release_event", self.component_click, component_class)
+      item.connect("motion_notify_event", self.component_click, component_class)
+
+
+  def component_click(self, widget, target, event, component_class):
+    if (event.state & gtk.gdk.BUTTON1_MASK
+        and self.computer.get_current_tools()=="DEL"):
+      self.computer.assign_tool(1)
+
+    if event.type == gtk.gdk.MOTION_NOTIFY:
+      if event.state & gtk.gdk.BUTTON1_MASK:
+        if self.offset_x == 0:
+          bounds = widget.get_bounds()
+          self.offset_x = (event.x - bounds.x1)
+          self.offset_y = (event.y - bounds.y1)
+
+        widget.set_properties(x = event.x - self.offset_x,
+                              y = event.y - self.offset_y)
+
+    if event.type == gtk.gdk.BUTTON_RELEASE:
+      if event.button == 1:
+        bounds = widget.get_bounds()
+        component_class(self.computer,
+                           event.x - self.offset_x + (bounds.x2 - bounds.x1)/2,
+                           event.y - self.offset_y + (bounds.y2 - bounds.y1)/2,
+                           )
+
+        widget.set_properties(x = self.init_coord[component_class][0],
+                              y = self.init_coord[component_class][1])
+
+        self.offset_x = self.offset_y = 0
+
+      return True
