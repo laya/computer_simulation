@@ -183,38 +183,113 @@ class Gcompris_computer_simulation:
     Selector(self, component_set)
 
 
-class CPU:
+class Component(object):
+  def __init__(self, computer, image, x, y):
+    self.computer = computer
+    self.canvas = computer.gcomprisBoard.canvas
+    self.rootitem = computer.rootitem
+
+    self.comp_rootitem = goocanvas.Group(
+                           parent = self.rootitem,
+                         )
+    # self.comp_rootitem.props.visibility = goocanvas.ITEM_INVISIBLE
+
+    pixmap = gcompris.utils.load_pixmap(self.image)
+    self.x = x
+    self.y = y
+    self.width = 70
+    self.height = 70
+    #self.center_x = pixmap.get_width()/2
+    #self.center_y = pixmap.get_height()/2
+    self.center_x = self.width/2
+    self.center_y = self.height/2
+
+    self.component_item_offset_x = 0
+    self.component_item_offset_y = 0
+    self.component_item = goocanvas.Image(
+                            parent = self.comp_rootitem,
+                            pixbuf = pixmap,
+                            #x = self.x + self.component_item_offset_x,
+                            x = self.x - self.center_x,
+                            y = self.y - self.center_y,
+                            #y = self.y + self.component_item_offset_y,
+                            width = self.width,
+                            height = self.height,
+                          )
+    self.component_item.connect("button_press_event",
+                                self.component_move, self)
+    self.component_item.connect("motion_notify_event",
+                                self.component_move, self)
+
+  def get_rootitem(self):
+    return self.comp_rootitem
+
+  def move(self, x, y):
+    self.x = x - self.center_x
+    self.y = y - self.center_y
+    self.component_item.set_properties(x = self.x + self.component_item_offset_x,
+                                       y = self.y + self.component_item_offset_y)
+
+  def remove(self):
+    self.comp_rootitem.remove()
+
+  def component_move(self, widget, target, event, component):
+    if event.type == gtk.gdk.MOTION_NOTIFY:
+      print "type matched!!"
+      if event.state & gtk.gdk.BUTTON1_MASK:
+        print "event state matched"
+        print "tool:", self.computer.get_current_tools()
+        if (self.computer.get_current_tools()[0] == "SELECT"):
+          print "it's being moved"
+          component.move(event.x, event.y)
+
+    else:
+      if (self.computer.get_current_tools()[0] == "DEL"):
+        print "will remove now"
+        self.remove()
+
+    return True
+
+    
+    
+
+class CPU(Component):
   image = "computer/cpu.png"
   icon = "computer/cpu.png"
   
   def __init__(self, computer, x, y):
-    pass 
+    print "CPU created at", x, "and", y
+    super(CPU, self).__init__(computer, self.image, x, y)
+    # Component.__init__(self, computer, self.image)
 
 
-class Keyboard:
+class Keyboard(Component):
   image = "computer/keyboard.png"
   icon = "computer/keyboard.png"
 
   def __init__(self, computer, x, y):
-    pass
+    print "Keyboard created at", x, "and", y
+    super(Keyboard, self).__init__(computer, self.image, x, y)
 
-class Monitor:
+class Monitor(Component):
   image = "computer/monitor.png"
   icon = "computer/monitor.png"
 
   def __init__(self, computer, x, y):
-    pass
+    print "Monitor created at", x, "and", y
+    super(Monitor, self).__init__(computer, self.image, x, y)
 
 
-class UPS:
+class UPS(Component):
   image = "computer/ups.png"
   icon = "computer/ups.png"
 
   def __init__(self, computer, x, y):
-    pass
+    print "UPS created at", x, "and", y
+    super(UPS, self).__init__(computer, self.image, x, y)
 
 
-class Selector:
+class Selector(Component):
   def __init__(self, computer, components_class):
     self.computer = computer
     self.rootitem = computer.rootitem
@@ -255,7 +330,7 @@ class Selector:
 
   def component_click(self, widget, target, event, component_class):
     if (event.state & gtk.gdk.BUTTON1_MASK
-        and self.computer.get_current_tools()=="DEL"):
+        and self.computer.get_current_tools()[0]=="DEL"):
       self.computer.assign_tool(1)
 
     if event.type == gtk.gdk.MOTION_NOTIFY:
@@ -271,10 +346,13 @@ class Selector:
     if event.type == gtk.gdk.BUTTON_RELEASE:
       if event.button == 1:
         bounds = widget.get_bounds()
+        x_pos = event.x - self.offset_x + (bounds.x2 - bounds.x1)/2
+        y_pos = event.y - self.offset_y + (bounds.y2 - bounds.y1)/2
+        print "Placing at", x_pos, "and", y_pos
         component_class(self.computer,
-                           event.x - self.offset_x + (bounds.x2 - bounds.x1)/2,
-                           event.y - self.offset_y + (bounds.y2 - bounds.y1)/2,
-                           )
+                        event.x - self.offset_x + (bounds.x2 - bounds.x1)/2,
+                        event.y - self.offset_y + (bounds.y2 - bounds.y1)/2,
+                        )
 
         widget.set_properties(x = self.init_coord[component_class][0],
                               y = self.init_coord[component_class][1])
