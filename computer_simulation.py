@@ -192,15 +192,12 @@ class Component(object):
     self.comp_rootitem = goocanvas.Group(
                            parent = self.rootitem,
                          )
-    # self.comp_rootitem.props.visibility = goocanvas.ITEM_INVISIBLE
 
     pixmap = gcompris.utils.load_pixmap(self.image)
     self.x = x
     self.y = y
     self.width = 70
     self.height = 70
-    #self.center_x = pixmap.get_width()/2
-    #self.center_y = pixmap.get_height()/2
     self.center_x = self.width/2
     self.center_y = self.height/2
 
@@ -209,10 +206,8 @@ class Component(object):
     self.component_item = goocanvas.Image(
                             parent = self.comp_rootitem,
                             pixbuf = pixmap,
-                            #x = self.x + self.component_item_offset_x,
                             x = self.x - self.center_x,
                             y = self.y - self.center_y,
-                            #y = self.y + self.component_item_offset_y,
                             width = self.width,
                             height = self.height,
                           )
@@ -260,7 +255,6 @@ class CPU(Component):
   def __init__(self, computer, x, y):
     print "CPU created at", x, "and", y
     super(CPU, self).__init__(computer, self.image, x, y)
-    # Component.__init__(self, computer, self.image)
 
 
 class Keyboard(Component):
@@ -270,6 +264,7 @@ class Keyboard(Component):
   def __init__(self, computer, x, y):
     print "Keyboard created at", x, "and", y
     super(Keyboard, self).__init__(computer, self.image, x, y)
+
 
 class Monitor(Component):
   image = "computer/monitor.png"
